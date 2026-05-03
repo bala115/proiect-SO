@@ -285,6 +285,30 @@ void filter_reports(const char *district, int argc, char *argv[]) {
     close(fd);
 }
 
+void remove_district(const char *district, const char *role) {
+    if (strcmp(role, "manager") != 0) {
+        printf("Nu aveti permisiunea pentru aceasta operatie\n");
+        return;
+    }
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("eroare la fork");
+        return;
+    }
+
+    if (pid == 0) { // Proces fiu
+        char command[512];
+        snprintf(command, sizeof(command), "rm -rf %s", district);
+        int status = system(command);
+        if (status == 0) printf("Succes la stergerea districtului %s\n", district);
+        else printf("Eroare la stergerea districtului\n");
+        exit(0);
+    } else {
+        wait(NULL); // Părintele așteaptă finalizarea ștergerii
+    }
+}
+
 int main(int argc, char *argv[]) {
     char *role = NULL, *user = NULL, *cmd = NULL, *dist = NULL;
 
@@ -337,3 +361,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
